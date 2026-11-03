@@ -1,0 +1,172 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: store-front, namespace: store}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: store-front}}
+  template:
+    metadata: {labels: {app: store-front}}
+    spec:
+      serviceAccountName: store-front
+      containers:
+        - name: store-front
+          image: ${ACR_LOGIN_SERVER}/store-front:${IMAGE_TAG}
+          ports: [{containerPort: 8080}]
+          resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: 500m, memory: 256Mi}}
+          readinessProbe: {httpGet: {path: /health, port: 8080}, periodSeconds: 5}
+          livenessProbe: {httpGet: {path: /health, port: 8080}, periodSeconds: 10}
+          volumeMounts:
+            - {name: nginx, mountPath: /etc/nginx/conf.d/default.conf, subPath: default.conf}
+      volumes:
+        - name: nginx
+          configMap: {name: frontend-nginx}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: store-admin, namespace: store}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: store-admin}}
+  template:
+    metadata: {labels: {app: store-admin}}
+    spec:
+      serviceAccountName: store-admin
+      containers:
+        - name: store-admin
+          image: ${ACR_LOGIN_SERVER}/store-admin:${IMAGE_TAG}
+          ports: [{containerPort: 8081}]
+          resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: 500m, memory: 256Mi}}
+          readinessProbe: {httpGet: {path: /health, port: 8081}, periodSeconds: 5}
+          livenessProbe: {httpGet: {path: /health, port: 8081}, periodSeconds: 10}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: product-service, namespace: store}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: product-service}}
+  template:
+    metadata: {labels: {app: product-service}}
+    spec:
+      serviceAccountName: product-service
+      containers:
+        - name: product-service
+          image: ${ACR_LOGIN_SERVER}/product-service:${IMAGE_TAG}
+          ports: [{containerPort: 3002}]
+          resources: {requests: {cpu: 50m, memory: 64Mi}, limits: {cpu: 500m, memory: 256Mi}}
+          readinessProbe: {httpGet: {path: /health, port: 3002}, periodSeconds: 5}
+          livenessProbe: {httpGet: {path: /health, port: 3002}, periodSeconds: 10}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: order-service, namespace: store}
+spec:
+  replicas: 2
+  strategy: {type: Recreate}
+  selector: {matchLabels: {app: order-service}}
+  template:
+    metadata: {labels: {app: order-service}}
+    spec:
+      serviceAccountName: order-service
+      containers:
+        - name: order-service
+          image: ${ACR_LOGIN_SERVER}/order-service:${IMAGE_TAG}
+          ports: [{containerPort: 3000}]
+          env:
+            - {name: USE_WORKLOAD_IDENTITY_AUTH, value: "true"}
+            - {name: ORDER_QUEUE_HOSTNAME, value: "${SB_FQDN}"}
+            - {name: ORDER_QUEUE_NAME, value: orders}
+            - {name: FASTIFY_ADDRESS, value: "0.0.0.0"}
+          resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: 500m, memory: 512Mi}}
+          readinessProbe: {httpGet: {path: /health, port: 3000}, periodSeconds: 5}
+          livenessProbe: {httpGet: {path: /health, port: 3000}, periodSeconds: 10}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: makeline-service, namespace: store}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: makeline-service}}
+  template:
+    metadata: {labels: {app: makeline-service}}
+    spec:
+      serviceAccountName: makeline-service
+      containers:
+        - name: makeline-service
+          image: ${ACR_LOGIN_SERVER}/makeline-service:${IMAGE_TAG}
+          ports: [{containerPort: 3001}]
+          env:
+            - {name: USE_WORKLOAD_IDENTITY_AUTH, value: "true"}
+            - {name: AZURE_SERVICEBUS_FULLYQUALIFIEDNAMESPACE, value: "${SB_FQDN}"}
+            - {name: ORDER_QUEUE_NAME, value: orders}
+            - {name: ORDER_DB_API, value: cosmosdbsql}
+            - {name: AZURE_COSMOS_RESOURCEENDPOINT, value: "${COSMOS_ENDPOINT}"}
+            - {name: ORDER_DB_NAME, value: orderdb}
+            - {name: ORDER_DB_CONTAINER_NAME, value: orders}
+            - {name: ORDER_DB_PARTITION_KEY, value: storeId}
+            - {name: ORDER_DB_PARTITION_VALUE, value: contoso}
+          resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: 500m, memory: 512Mi}}
+          readinessProbe: {httpGet: {path: /health, port: 3001}, periodSeconds: 5}
+          livenessProbe: {httpGet: {path: /liveness, port: 3001}, periodSeconds: 10}
+          startupProbe: {httpGet: {path: /liveness, port: 3001}, failureThreshold: 60, periodSeconds: 5}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: checkout-api, namespace: store}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: checkout-api}}
+  template:
+    metadata: {labels: {app: checkout-api}}
+    spec:
+      serviceAccountName: checkout-api
+      containers:
+        - name: checkout-api
+          image: ${ACR_LOGIN_SERVER}/checkout-api:${IMAGE_TAG}
+          ports: [{containerPort: 8080}]
+          env:
+            - {name: ORDER_SERVICE_URL, value: "http://order-service:3000/"}
+          envFrom:
+            - configMapRef: {name: pricing-config}
+          resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: 500m, memory: 512Mi}}
+          readinessProbe: {httpGet: {path: /health, port: 8080}, periodSeconds: 5}
+          livenessProbe: {httpGet: {path: /health, port: 8080}, periodSeconds: 10}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: virtual-customer, namespace: store}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: virtual-customer}}
+  template:
+    metadata: {labels: {app: virtual-customer}}
+    spec:
+      serviceAccountName: virtual-customer
+      containers:
+        - name: virtual-customer
+          image: ${ACR_LOGIN_SERVER}/demo-traffic:${IMAGE_TAG}
+          env:
+            - {name: MODE, value: customer}
+            - {name: STORE_URL, value: "http://${DEMO_HOST}"}
+            - {name: MAKELINE_SERVICE_URL, value: "http://makeline-service:3001"}
+          resources: {requests: {cpu: 25m, memory: 32Mi}, limits: {cpu: 200m, memory: 128Mi}}
+          readinessProbe: {exec: {command: [python, -c, "import os; os.kill(1, 0)"]}, periodSeconds: 5}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: virtual-worker, namespace: store}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: virtual-worker}}
+  template:
+    metadata: {labels: {app: virtual-worker}}
+    spec:
+      serviceAccountName: virtual-worker
+      containers:
+        - name: virtual-worker
+          image: ${ACR_LOGIN_SERVER}/demo-traffic:${IMAGE_TAG}
+          env:
+            - {name: MODE, value: worker}
+            - {name: MAKELINE_SERVICE_URL, value: "http://makeline-service:3001"}
+          resources: {requests: {cpu: 25m, memory: 32Mi}, limits: {cpu: 200m, memory: 128Mi}}
+          readinessProbe: {exec: {command: [python, -c, "import os; os.kill(1, 0)"]}, periodSeconds: 5}

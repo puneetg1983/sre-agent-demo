@@ -1,0 +1,88 @@
+CONTOSO SPORTS STORE - PRODUCT PHOTO CREDITS
+
+These are real photographs reused from Wikimedia Commons.
+Photos illustrate synthetic demo products; exact brands, quantities, and colors may differ.
+No photographer, manufacturer, or Wikimedia endorsement is implied.
+The application source license does not override the separate photo licenses below.
+Changes: resized, JPEG-compressed, and embedded in a fixed-size SVG image frame.
+Each photo adaptation retains its indicated license, including ShareAlike where applicable.
+
+resistance-bands.svg
+  Photograph: Strength band.png
+  Author: Tiia Monto
+  Source: https://commons.wikimedia.org/wiki/File:Strength_band.png
+  Original image: https://upload.wikimedia.org/wikipedia/commons/c/cf/Strength_band.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+  License: CC BY-SA 4.0
+  License terms: https://creativecommons.org/licenses/by-sa/4.0
+
+tennis-racket.svg
+  Photograph: Tennis racket and ball.JPG
+  Author: nao2g
+  Source: https://commons.wikimedia.org/wiki/File:Tennis_racket_and_ball.JPG
+  Original image: https://upload.wikimedia.org/wikipedia/commons/5/59/Tennis_racket_and_ball.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+  License: CC BY 3.0
+  License terms: https://creativecommons.org/licenses/by/3.0
+
+tennis-balls.svg
+  Photograph: Tennisball.jpg
+  Author: Christian " VisualBeo " Horvat
+  Source: https://commons.wikimedia.org/wiki/File:Tennisball.jpg
+  Original image: https://upload.wikimedia.org/wikipedia/commons/5/55/Tennisball.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+  License: CC BY-SA 3.0
+  License terms: http://creativecommons.org/licenses/by-sa/3.0/
+
+pickleball-set.svg
+  Photograph: A pickleball paddle with two pickleballs.jpg
+  Author: OvertAnalyzer
+  Source: https://commons.wikimedia.org/wiki/File:A_pickleball_paddle_with_two_pickleballs.jpg
+  Original image: https://upload.wikimedia.org/wikipedia/commons/7/71/A_pickleball_paddle_with_two_pickleballs.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+  License: CC BY-SA 4.0
+  License terms: https://creativecommons.org/licenses/by-sa/4.0
+
+table-tennis.svg
+  Photograph: Table tennis racket (51465161213).jpg
+  Author: Jonas Perkuhn
+  Source: https://commons.wikimedia.org/wiki/File:Table_tennis_racket_(51465161213).jpg
+  Original image: https://upload.wikimedia.org/wikipedia/commons/f/f3/Table_tennis_racket_%2851465161213%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+  License: CC0
+  License terms: http://creativecommons.org/publicdomain/zero/1.0/deed.en
+
+alpine-skis.svg
+  Photograph: Rossignol Experience 88 Ti Skis.jpg
+  Author: Викидим
+  Source: https://commons.wikimedia.org/wiki/File:Rossignol_Experience_88_Ti_Skis.jpg
+  Original image: https://upload.wikimedia.org/wikipedia/commons/f/f3/Rossignol_Experience_88_Ti_Skis.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+  License: CC BY-SA 4.0
+  License terms: https://creativecommons.org/licenses/by-sa/4.0
+
+yoga-mat.svg
+  Photograph: Yoga mat.jpg
+  Author: Gausanchennai
+  Source: https://commons.wikimedia.org/wiki/File:Yoga_mat.jpg
+  Original image: https://upload.wikimedia.org/wikipedia/commons/6/6d/Yoga_mat.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+  License: CC BY-SA 4.0
+  License terms: https://creativecommons.org/licenses/by-sa/4.0
+
+dumbbells.svg
+  Photograph: Dumbbell.JPG
+  Author: BGN-WMCO
+  Source: https://commons.wikimedia.org/wiki/File:Dumbbell.JPG
+  Original image: https://upload.wikimedia.org/wikipedia/commons/b/be/Dumbbell.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+  License: CC BY 2.5
+  License terms: https://creativecommons.org/licenses/by/2.5
+
+running-shoes.svg
+  Photograph: Asics Gel-Cumulus 22.jpg
+  Author: Petar Milošević
+  Source: https://commons.wikimedia.org/wiki/File:Asics_Gel-Cumulus_22.jpg
+  Original image: https://upload.wikimedia.org/wikipedia/commons/8/8b/Asics_Gel-Cumulus_22.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+  License: CC BY-SA 4.0
+  License terms: https://creativecommons.org/licenses/by-sa/4.0
+
+sports-bag.svg
+  Photograph: Central Sports Bag.jpg
+  Author: Ntsctalk
+  Source: https://commons.wikimedia.org/wiki/File:Central_Sports_Bag.jpg
+  Original image: https://upload.wikimedia.org/wikipedia/commons/2/21/Central_Sports_Bag.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+  License: CC BY-SA 4.0
+  License terms: https://creativecommons.org/licenses/by-sa/4.0

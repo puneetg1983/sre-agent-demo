@@ -1,0 +1,36 @@
+apiVersion: approuting.kubernetes.azure.com/v1alpha1
+kind: NginxIngressController
+metadata:
+  name: store-internal
+spec:
+  ingressClassName: store-internal
+  controllerNamePrefix: store-internal
+  loadBalancerAnnotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    service.beta.kubernetes.io/azure-load-balancer-ipv4: "${INGRESS_IP}"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata: {name: store-front, namespace: store}
+spec:
+  ingressClassName: store-internal
+  rules:
+    - host: "${DEMO_HOST}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: {service: {name: store-front, port: {number: 80}}}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata: {name: store-admin, namespace: store}
+spec:
+  ingressClassName: store-internal
+  rules:
+    - host: "admin.${DEMO_HOST}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: {service: {name: store-admin, port: {number: 80}}}

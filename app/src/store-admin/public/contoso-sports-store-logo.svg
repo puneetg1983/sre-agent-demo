@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 170" role="img" aria-label="Contoso Sports Store">
+  <style>:root{--cp-bg:#f7f4ef;--cp-text:#242424;--cp-accent:#b11f4b}</style>
+  <rect width="200" height="170" rx="16" fill="var(--cp-bg)"/>
+  <g fill="none" stroke="var(--cp-accent)" stroke-width="5" stroke-linecap="round">
+    <circle cx="100" cy="47" r="27"/>
+    <path d="M78 29q29 12 43 34M80 65q27-11 42-34"/>
+  </g>
+  <g text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-weight="700">
+    <text x="100" y="104" font-size="23" fill="var(--cp-text)">CONTOSO</text>
+    <text x="100" y="133" font-size="25" fill="var(--cp-accent)">SPORTS</text>
+    <text x="100" y="155" font-size="16" fill="var(--cp-text)" letter-spacing="5">STORE</text>
+  </g>
+</svg>

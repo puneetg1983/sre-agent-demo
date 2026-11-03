@@ -1,0 +1,22 @@
+name: Validate demo images
+run-name: Validate images @ ${{ inputs.sourceSha }}
+on:
+  workflow_dispatch:
+    inputs:
+      sourceSha: {description: "Source commit to validate", required: false, default: main}
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sourceSha }}
+      - name: Validate Docker builds
+        run: |
+          set -euo pipefail
+          for service in checkout-api order-service makeline-service demo-traffic store-front store-admin product-service inventory-service; do
+            docker build --pull -t "demo/$service:validation" "app/src/$service"
+          done

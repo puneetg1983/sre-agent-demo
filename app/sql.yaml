@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: sql-settings, namespace: store}
+data:
+  SQL_SERVER: "${SQL_SERVER}"
+  SQL_DATABASE: "${SQL_DATABASE}"
+  INVENTORY_SERVICE_CLIENT_ID: "${INVENTORY_SERVICE_CLIENT_ID}"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: inventory-service
+  namespace: store
+  annotations: {azure.workload.identity/client-id: "${INVENTORY_SERVICE_CLIENT_ID}", azure.workload.identity/tenant-id: "${TENANT_ID}"}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sql-operator
+  namespace: store
+  annotations: {azure.workload.identity/client-id: "${SQL_OPERATOR_CLIENT_ID}", azure.workload.identity/tenant-id: "${TENANT_ID}"}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: inventory-service, namespace: store}
+spec:
+  selector: {app: inventory-service}
+  ports: [{port: 8080, targetPort: 8080}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: inventory-service, namespace: store}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: inventory-service}}
+  template:
+    metadata: {labels: {app: inventory-service}}
+    spec:
+      serviceAccountName: inventory-service
+      containers:
+        - name: inventory-service
+          image: ${ACR_LOGIN_SERVER}/inventory-service:${IMAGE_TAG}
+          ports: [{containerPort: 8080}]
+          envFrom: [{configMapRef: {name: sql-settings}}]
+          env:
+            - {name: APPINSIGHTS_CONNECTION_STRING, value: "${APPINSIGHTS_CONNECTION_STRING}"}
+          resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: 500m, memory: 512Mi}}
+          readinessProbe: {httpGet: {path: /health, port: 8080}, periodSeconds: 5}
+          livenessProbe: {httpGet: {path: /health, port: 8080}, periodSeconds: 10}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: pickup-monitor, namespace: store}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: pickup-monitor}}
+  template:
+    metadata: {labels: {app: pickup-monitor}}
+    spec:
+      serviceAccountName: virtual-customer
+      containers:
+        - name: pickup-monitor
+          image: ${ACR_LOGIN_SERVER}/demo-traffic:${IMAGE_TAG}
+          env:
+            - {name: MODE, value: pickup}
+            - {name: STORE_URL, value: "http://${DEMO_HOST}"}
+          resources: {requests: {cpu: 25m, memory: 32Mi}, limits: {cpu: 200m, memory: 128Mi}}
+          readinessProbe: {exec: {command: [python, -c, "import os; os.kill(1, 0)"]}, periodSeconds: 5}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sql-bootstrap
+  namespace: store
+  annotations: {kustomize.toolkit.fluxcd.io/force: enabled}
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 900
+  template:
+    metadata: {labels: {app: sql-bootstrap, azure.workload.identity/use: "true"}}
+    spec:
+      nodeSelector: {kubernetes.azure.com/agentpool: user}
+      serviceAccountName: sql-operator
+      restartPolicy: Never
+      containers:
+        - name: sql-bootstrap
+          image: ${ACR_LOGIN_SERVER}/inventory-service:${IMAGE_TAG}
+          args: [bootstrap]
+          envFrom: [{configMapRef: {name: sql-settings}}]
+          resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: 500m, memory: 512Mi}}
