@@ -9,13 +9,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useProductStore, useOrderStore } from '@/stores'
-import type { Product, Order } from '@/types'
+import type { Product } from '@/types'
 import TopNav from './components/TopNav.vue'
 
 const productStore = useProductStore()
 const orderStore = useOrderStore()
+let refreshTimer: ReturnType<typeof setInterval> | undefined
 
 onMounted(() => {
   if (productStore.count === 0) {
@@ -31,30 +32,12 @@ onMounted(() => {
         alert('Error occurred while fetching products')
       })
   }
-  if (orderStore.count === 0) {
-    console.log('Fetching orders')
-    fetch('/api/makeline/order/fetch')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Failed to fetch orders: ${response.status}`)
-        }
-        return response.json()
-      })
-      .then((data: Order[]) => {
-        if (Array.isArray(data)) {
-          orderStore.addOrders(data)
-          console.log(`Fetched ${data.length} orders`)
-        } else {
-          console.error('Unexpected response format:', data)
-          orderStore.initialized = true
-        }
-      })
-      .catch((error) => {
-        console.log(error)
-        orderStore.initialized = true
-        console.error(`Error occurred while fetching orders`, error)
-      })
-  }
+  void orderStore.fetchOrders()
+  refreshTimer = setInterval(() => { void orderStore.fetchOrders() }, 5000)
+})
+
+onUnmounted(() => {
+  if (refreshTimer !== undefined) clearInterval(refreshTimer)
 })
 </script>
 

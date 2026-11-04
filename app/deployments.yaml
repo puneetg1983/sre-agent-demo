@@ -136,7 +136,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata: {name: virtual-customer, namespace: store}
 spec:
-  replicas: 1
+  replicas: 0
   selector: {matchLabels: {app: virtual-customer}}
   template:
     metadata: {labels: {app: virtual-customer}}
@@ -156,7 +156,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata: {name: virtual-worker, namespace: store}
 spec:
-  replicas: 1
+  replicas: 0
   selector: {matchLabels: {app: virtual-worker}}
   template:
     metadata: {labels: {app: virtual-worker}}

@@ -33,6 +33,17 @@ app.Use(async (context, next) =>
 });
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapGet("/liveness", () => Results.Ok(new { status = "alive" }));
+app.MapGet("/order/recent", async (Container container, HttpResponse response, CancellationToken cancellation) =>
+{
+    response.Headers.CacheControl = "no-store";
+    var orders = new List<Order>();
+    using var iterator = container.GetItemQueryIterator<Order>(
+        new QueryDefinition("SELECT TOP @limit * FROM o ORDER BY o._ts DESC").WithParameter("@limit", 50),
+        requestOptions: new QueryRequestOptions { PartitionKey = new PartitionKey("contoso"), MaxItemCount = 50 });
+    while (iterator.HasMoreResults)
+        orders.AddRange(await iterator.ReadNextAsync(cancellation));
+    return Results.Ok(orders);
+});
 app.MapGet("/order/fetch", async (Container container, CancellationToken cancellation) =>
 {
     var orders = new List<Order>();
@@ -141,6 +152,8 @@ public sealed class Order
     public List<Item> Items { get; set; } = [];
     [JsonProperty("status")]
     public int Status { get; set; }
+    [JsonProperty("_ts")]
+    public long UpdatedAtUnixSeconds { get; set; }
 }
 
 public sealed class Item

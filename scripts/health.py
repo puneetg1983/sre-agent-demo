@@ -93,11 +93,11 @@ def status(args, result):
                 if error.code != 404:
                     raise
                 continue
-            if order.get("status") == 2 and order.get("orderId") == order_id:
+            if order.get("status") in (0, 1, 2) and order.get("orderId") == order_id:
                 return True
         return False
 
-    check("End-to-end order fulfilled in Cosmos via admin API", end_to_end)
+    check("End-to-end order persisted in Cosmos via admin API", end_to_end)
     return failures
 
 

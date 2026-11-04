@@ -96,17 +96,16 @@ const completeOrder = () => {
     const foundOrder = orderStore.orders.find((o) => o.orderId == order.value?.orderId)
 
     if (foundOrder) {
-      foundOrder.status = 1
       fetch(`/api/makeline/order`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(foundOrder),
+        body: JSON.stringify({ ...foundOrder, status: 1 }),
       })
-        .then((response) => {
+        .then(async (response) => {
           if (response.ok) {
-            orderStore.removeOrder(foundOrder)
+            await orderStore.fetchOrders()
             alert('Order successfully processed')
             router.push('/')
           } else {

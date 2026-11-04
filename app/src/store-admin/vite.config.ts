@@ -36,10 +36,9 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         }
       })
 
-      // Get all orders
-      server.middlewares.use('/api/makeline/order/fetch', (req: IncomingMessage, res: ServerResponse) => {
+      server.middlewares.use('/api/makeline/order/recent', (req: IncomingMessage, res: ServerResponse) => {
         if (req.method === 'GET') {
-          fetch(`${MAKELINE_SERVICE_URL}order/fetch`)
+          fetch(`${MAKELINE_SERVICE_URL}order/recent`)
             .then((response: Response) => {
               if (!response.ok) {
                 throw new Error(`makeline-service returned ${response.status}`)
@@ -47,9 +46,9 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
               return response.json()
             })
             .then((data: unknown) => {
-              const orders = data as Order[]
               res.setHeader('Content-Type', 'application/json')
-              res.end(JSON.stringify(orders))
+              res.setHeader('Cache-Control', 'no-store')
+              res.end(JSON.stringify(data))
             })
             .catch((error: Error) => {
               console.error(error)
@@ -69,9 +68,10 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' }
           })
-            .then(() => {
-              res.statusCode = 200
-              res.end()
+            .then(async (response: Response) => {
+              res.statusCode = response.status
+              res.setHeader('Content-Type', 'application/json')
+              res.end(await response.text())
             })
             .catch((error: Error) => {
               console.error(error)

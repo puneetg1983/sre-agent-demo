@@ -1,164 +1,113 @@
 <template>
-  <div v-if="isLoading" class="loading-container">
-    <div class="loading-spinner"></div>
-    <p>Fetching orders...</p>
-  </div>
+  <section class="recent-orders">
+    <header class="orders-heading">
+      <div>
+        <h1>Recent orders</h1>
+        <p>Latest 50 orders across all statuses, most recently updated first. Refreshes every 5 seconds.</p>
+        <p v-if="orderStore.lastUpdated" class="updated">
+          Last successful refresh: {{ new Date(orderStore.lastUpdated).toLocaleTimeString() }}
+        </p>
+      </div>
+      <button :disabled="orderStore.loading" @click="orderStore.fetchOrders()">
+        {{ orderStore.loading ? 'Refreshing...' : 'Refresh orders' }}
+      </button>
+    </header>
 
-  <div v-else-if="hasOrders" class="order-table">
-    <!-- Column headers -->
-    <div class="table-header">
-      <div class="column-id">Order ID</div>
-      <div class="column-customer">Customer ID</div>
-      <div class="column-status">Status</div>
-      <div class="column-price">Total</div>
+    <div v-if="orderStore.loadError" class="orders-error" role="alert">
+      <strong>Order history unavailable</strong>
+      <p>{{ orderStore.loadError }}</p>
+      <p v-if="orders.length">Showing previously loaded orders. This is not live data.</p>
     </div>
 
-    <!-- Order rows -->
-    <div
-      v-for="order in orders"
-      :key="order.orderId"
-      class="table-row clickable"
-      @click="routeToOrder(order.orderId)"
-    >
-      <div class="column-id">{{ order.orderId }}</div>
-      <div class="column-customer">{{ order.customerId }}</div>
-      <div class="column-status">{{ order.status === 0 ? 'Pending' : 'Completed' }}</div>
-      <div class="column-price">{{ orderTotal(order) }}</div>
+    <p v-if="!orderStore.initialized" role="status">Fetching orders...</p>
+    <div v-else-if="orders.length" class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer ID</th>
+            <th>Status</th>
+            <th>Last updated</th>
+            <th class="total">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="order in orders" :key="order.orderId">
+            <td><RouterLink :to="`/order/${order.orderId}`">{{ order.orderId }}</RouterLink></td>
+            <td>{{ order.customerId }}</td>
+            <td><span :class="order.status === 0 ? 'pending' : 'completed'">
+              {{ order.status === 0 ? 'Pending' : 'Completed' }}
+            </span></td>
+            <td>{{ formatUpdated(order.updatedAtUnixSeconds) }}</td>
+            <td class="total">{{ orderTotal(order) }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-  </div>
-
-  <div v-else class="empty-list">
-    <h3>No orders available</h3>
-  </div>
+    <p v-else-if="!orderStore.loadError" class="empty-list">No orders available</p>
+  </section>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useOrderStore } from '@/stores'
-import { useRouter } from 'vue-router'
 import type { Order } from '@/types'
 
 const orderStore = useOrderStore()
-const router = useRouter()
-
-const isLoading = computed(() => !orderStore.initialized)
 const orders = computed(() => orderStore.orders)
-const hasOrders = computed(() => orders.value.length > 0)
-
-const orderTotal = (order: Order) => {
-  return order.items.reduce((total, item) => total + item.quantity * item.price, 0).toFixed(2)
-}
-
-const routeToOrder = (orderId: string | number | undefined) => {
-  if (!orderId) {
-    console.warn('Cannot navigate to order with undefined ID')
-    return
-  }
-  router.push(`/order/${orderId}`)
-}
+const orderTotal = (order: Order) =>
+  order.items.reduce((total, item) => total + item.quantity * item.price, 0).toFixed(2)
+const formatUpdated = (seconds: number | undefined) =>
+  seconds ? new Date(seconds * 1000).toLocaleString() : 'Not available'
 </script>
 
 <style scoped>
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  background-color: var(--card-background);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
+.recent-orders {
+  width: 95%;
   margin: 2rem auto;
-  width: 95vw;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-left-color: var(--primary-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.order-table {
-  background-color: var(--card-background);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  width: 95vw;
-  margin: 2rem auto;
-}
-
-.table-header,
-.table-row {
-  display: grid;
-  grid-template-columns: 0.5fr 1fr 2.5fr 0.5fr;
-  align-items: center;
-  padding: 0.5rem 1rem;
-}
-
-.table-header {
-  background-color: var(--primary-color);
-  color: var(--secondary-color);
-  font-weight: bold;
-}
-
-.table-row {
-  border-bottom: 1px solid #eee;
-}
-
-.table-row:last-child {
-  border-bottom: none;
-}
-
-.clickable {
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.table-row:hover {
-  background-color: rgba(0, 123, 255, 0.1);
-}
-
-.column-id {
+  color: var(--cp-text);
+  font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
   text-align: left;
 }
-
-.column-price {
-  text-align: right;
+.orders-heading { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+h1 { margin: 0; }
+.orders-heading p { color: var(--cp-text-muted); }
+.updated { font-size: 0.875rem; }
+button {
+  background: var(--cp-accent);
+  color: var(--cp-accent-fg);
+  border-radius: 0.625rem;
+  flex-shrink: 0;
 }
-
-.empty-list {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  background-color: var(--card-background);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
-  margin: 2rem auto;
-  width: 95vw;
+button:hover { background: var(--cp-accent-hover); }
+button:disabled { opacity: 0.65; cursor: wait; }
+.orders-error {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid var(--cp-danger);
+  border-radius: 0.625rem;
+  background: var(--cp-surface);
+  color: var(--cp-danger);
 }
-
-@media (max-width: 768px) {
-  .page-container {
-    width: 95%;
-    padding: 0 1rem;
-  }
-
-  .table-header,
-  .table-row {
-    grid-template-columns: 0.2fr 1fr 2.5fr 0.5fr;
-    font-size: 0.9rem;
-  }
+.orders-error p { margin-bottom: 0; }
+.table-container {
+  overflow-x: auto;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 16px;
+}
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px 16px; border-bottom: 1px solid var(--cp-border); white-space: nowrap; }
+th { background: var(--cp-surface-soft); color: var(--cp-text-muted); }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: var(--cp-accent-soft); }
+a { color: var(--cp-link); text-decoration: underline; }
+.total { text-align: right; }
+.pending { color: var(--cp-text); background: var(--cp-accent-soft); padding: 4px 8px; border-radius: 0.625rem; }
+.completed { color: var(--cp-success); }
+.empty-list { padding: 32px; text-align: center; background: var(--cp-surface); border-radius: 16px; }
+@media (max-width: 700px) {
+  .orders-heading { align-items: flex-start; flex-direction: column; }
 }
 </style>

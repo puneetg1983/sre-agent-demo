@@ -18,6 +18,7 @@ export interface Order {
   items: OrderItem[]
   orderId?: string
   status?: number
+  updatedAtUnixSeconds?: number
   [key: string]: string | number | boolean | object | null | undefined
 }
 

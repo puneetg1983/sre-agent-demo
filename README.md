@@ -29,6 +29,21 @@ Resource group: `rg-sreagent-demo-r13-app`, Poland Central.
 
 This is an isolated HTTP demonstration environment. Use synthetic data only.
 
+## Manual orders and history
+
+Background customer and fulfillment-worker deployments are scaled to zero.
+Place orders through the storefront, then open the Admin Portal to complete
+pending orders manually. The queue consumer still persists accepted orders
+to Cosmos DB; the independent SQL pickup monitor remains enabled.
+
+The Admin Orders page shows the latest 50 orders across all statuses, ordered
+by their last database update, and refreshes every five seconds. Completed
+orders remain visible. Manual completion is reflected only after the backend
+accepts it. Database failures display an error, retaining clearly marked stale
+history if any was previously loaded; they are not presented as an empty list.
+The administrative history endpoint is `/order/recent`; `/order/fetch`
+continues to return pending work for integrations.
+
 ## Deployment
 
 Prerequisites: Python 3.10+, Azure CLI with Bicep, Git, GitHub CLI signed in as
@@ -41,7 +56,7 @@ python scripts\deploy.py rg-sreagent-demo-r13
 python scripts\health.py rg-sreagent-demo-r13
 ```
 
-Health checks include stock lookups and one synthetic order through fulfillment.
+Health checks include stock lookups and one synthetic order persisted to Cosmos.
 The deployment uses native ACR Tasks builds pinned to the source commit; image
 tags identify the `app/src` tree. Flux reconciles `main/app` approximately every
 minute. Source pushes alone do not release new images. GitHub Actions provides
