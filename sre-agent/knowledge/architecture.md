@@ -29,14 +29,18 @@ Nonproduction Azure demo. Resource details verified on 2026-11-03.
 - `checkout-api`: checks active pricing configuration and forwards orders.
 - `order-service`: publishes orders to Service Bus.
 - `makeline-service`: consumes queued orders and persists/manages them in Cosmos.
-- `virtual-customer` and `virtual-worker`: generate and fulfill synthetic orders.
+- `virtual-customer` and `virtual-worker`: optional synthetic order actors, currently scaled to zero. Orders are placed and completed manually.
 - `inventory-service`: SQL-backed pickup availability; `pickup-monitor` cycles through the catalog independently of checkout.
 
 Flow: **Browser -> Gateway -> private ingress -> storefront -> checkout -> order-service -> Service Bus -> makeline -> Cosmos.**
 Pickup: **Product detail -> /api/pickup/{id} -> inventory-service -> SQL dbo.GetPickupAvailability / PickupInventory.**
 
 HTTP 201 means queued, not fulfilled. Orders retain their original ID; Cosmos
-status `2` means complete. The shopping cart lives in browser localStorage.
+status `0` is pending, `1` is manually completed and `2` is automatically
+completed. The Admin Portal retains the latest 50 orders across all statuses,
+ordered by their last database update, and refreshes every five seconds.
+Read failures are displayed explicitly, with previously loaded history marked
+stale rather than presented as live. The shopping cart lives in browser localStorage.
 
 ## Access and dependencies
 
