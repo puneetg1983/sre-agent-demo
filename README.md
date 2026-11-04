@@ -45,6 +45,22 @@ history if any was previously loaded; they are not presented as an empty list.
 The administrative history endpoint is `/order/recent`; `/order/fetch`
 continues to return pending work for integrations.
 
+## Product catalog
+
+The catalog contains 210 purchasable SKUs in eight categories, including the
+original ten products and 200 additional equipment variants. The storefront's
+category pills filter the catalog, preserve the selection in the URL, and load
+24 cards at a time. The Admin Portal can edit each product's category.
+The catalog is persisted in the existing Azure SQL database rather than pod
+memory; updates survive product-service restarts. Seeding preserves existing
+records and adds pickup inventory for new catalog IDs.
+
+Products use locally hosted, licensed product-family photographs. Variants
+share the appropriate family image; photos are illustrative, not unique
+photographs of each SKU. The canonical seed is
+`app/src/product-service/catalog.json`; regenerate its deterministic variants
+with `python scripts\build_catalog.py`.
+
 ## Deployment
 
 Prerequisites: Python 3.10+, Azure CLI with Bicep, Git, GitHub CLI signed in as

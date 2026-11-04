@@ -5,6 +5,7 @@ data:
   SQL_SERVER: "${SQL_SERVER}"
   SQL_DATABASE: "${SQL_DATABASE}"
   INVENTORY_SERVICE_CLIENT_ID: "${INVENTORY_SERVICE_CLIENT_ID}"
+  PRODUCT_SERVICE_CLIENT_ID: "${PRODUCT_SERVICE_CLIENT_ID}"
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -87,4 +88,11 @@ spec:
           image: ${ACR_LOGIN_SERVER}/inventory-service:${IMAGE_TAG}
           args: [bootstrap]
           envFrom: [{configMapRef: {name: sql-settings}}]
+          env:
+            - {name: CATALOG_SEED_PATH, value: /catalog/catalog.json}
+          volumeMounts:
+            - {name: catalog-seed, mountPath: /catalog, readOnly: true}
           resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: 500m, memory: 512Mi}}
+      volumes:
+        - name: catalog-seed
+          configMap: {name: catalog-seed}

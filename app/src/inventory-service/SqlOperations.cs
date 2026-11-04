@@ -43,6 +43,9 @@ static class SqlOperations
 
     static async Task BootstrapAsync(CancellationToken token)
     {
+        var catalogJson = await File.ReadAllTextAsync(Required("CATALOG_SEED_PATH"), token);
+        CatalogBootstrap.Validate(catalogJson);
+        var productClientId = Guid.Parse(Required("PRODUCT_SERVICE_CLIENT_ID"));
         await using var connection = Connection("Contoso.SqlBootstrap");
         await connection.OpenAsync(token);
         var script = await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "bootstrap.sql"), token);
@@ -63,6 +66,7 @@ static class SqlOperations
             GRANT EXECUTE ON OBJECT::dbo.GetPickupAvailability TO [inventory-service];
             """, connection) { CommandTimeout = 30 };
         await user.ExecuteNonQueryAsync(token);
+        await CatalogBootstrap.RunAsync(connection, catalogJson, productClientId, token);
         Console.WriteLine("SQL_BOOTSTRAP_COMPLETE schema seeded; inventory-service has EXECUTE only.");
     }
 }

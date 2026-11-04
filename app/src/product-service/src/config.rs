@@ -3,6 +3,7 @@ use std::net::TcpListener;
 use std::time::Duration;
 
 pub struct Settings {
+    pub in_memory: bool,
     pub max_size: usize,
     pub log_level: String,
     pub port: u16,
@@ -31,6 +32,7 @@ impl Default for Settings {
             .unwrap_or(50 * 1024 * 1024); // 50 MB default for image data
 
         Self {
+            in_memory: env::var("CATALOG_STORE").is_ok_and(|value| value == "memory"),
             max_size,
             log_level: "info".into(),
             port: 3002,
@@ -43,6 +45,10 @@ impl Default for Settings {
 }
 
 impl Settings {
+    pub fn with_in_memory(mut self) -> Self {
+        self.in_memory = true;
+        self
+    }
     pub fn with_port(mut self, port: u16) -> Self {
         self.port = port;
         self

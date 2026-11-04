@@ -8,6 +8,12 @@ pub struct Product {
     pub price: f32,
     pub description: String,
     pub image: String,
+    #[serde(default = "default_category")]
+    pub category: String,
+}
+
+fn default_category() -> String {
+    "General".into()
 }
 
 #[derive(Deserialize)]
@@ -21,6 +27,8 @@ pub enum ValidationError {
     EmptyDescription,
     EmptyImage,
     NegativePrice,
+    InvalidCategory,
+    FieldTooLong,
 }
 
 impl fmt::Display for ValidationError {
@@ -30,6 +38,8 @@ impl fmt::Display for ValidationError {
             Self::EmptyDescription => write!(f, "Product description cannot be empty"),
             Self::EmptyImage => write!(f, "Product image cannot be empty"),
             Self::NegativePrice => write!(f, "Product price cannot be negative"),
+            Self::InvalidCategory => write!(f, "Product category cannot be empty"),
+            Self::FieldTooLong => write!(f, "Product field exceeds the maximum length"),
         }
     }
 }
@@ -44,8 +54,18 @@ pub fn validate_product(product: &Product) -> Result<(), ValidationError> {
     if product.image.trim().is_empty() {
         return Err(ValidationError::EmptyImage);
     }
-    if product.price < 0.0 {
+    if !product.price.is_finite() || product.price < 0.0 {
         return Err(ValidationError::NegativePrice);
+    }
+    if product.category.trim().is_empty() {
+        return Err(ValidationError::InvalidCategory);
+    }
+    if product.name.encode_utf16().count() > 200
+        || product.description.encode_utf16().count() > 4000
+        || product.image.encode_utf16().count() > 2048
+        || product.category.encode_utf16().count() > 100
+    {
+        return Err(ValidationError::FieldTooLong);
     }
     Ok(())
 }
@@ -54,6 +74,7 @@ pub fn validate_product(product: &Product) -> Result<(), ValidationError> {
 pub enum StoreError {
     NotFound(i32),
     Validation(ValidationError),
+    Unavailable,
 }
 
 impl fmt::Display for StoreError {
@@ -61,6 +82,7 @@ impl fmt::Display for StoreError {
         match self {
             Self::NotFound(id) => write!(f, "Product with id {id} not found"),
             Self::Validation(e) => write!(f, "{e}"),
+            Self::Unavailable => write!(f, "Product catalog is temporarily unavailable"),
         }
     }
 }
@@ -128,78 +150,8 @@ impl ProductStore {
 }
 
 pub fn seed_products() -> Vec<Product> {
-    vec![
-        Product {
-            id: 1,
-            name: "Resistance Band Set".into(),
-            price: 10.0,
-            description: "Three resistance levels for warm-ups, mobility work, and strength training at home or on the go.".into(),
-            image: "/resistance-bands.svg".into(),
-        },
-        Product {
-            id: 2,
-            name: "Court Pro Tennis Racket".into(),
-            price: 89.99,
-            description: "A lightweight, pre-strung tennis racket with a comfortable grip for practice sessions and match play.".into(),
-            image: "/tennis-racket.svg".into(),
-        },
-        Product {
-            id: 3,
-            name: "Tennis Ball Three-Pack".into(),
-            price: 8.99,
-            description: "Three durable tennis balls for rallies, serving drills, and your next day on the court.".into(),
-            image: "/tennis-balls.svg".into(),
-        },
-        Product {
-            id: 4,
-            name: "Pickleball Paddle and Ball Set".into(),
-            price: 49.99,
-            description: "A balanced pickleball paddle with two outdoor balls, ready for social games and skill-building drills.".into(),
-            image: "/pickleball-set.svg".into(),
-        },
-        Product {
-            id: 5,
-            name: "Table Tennis Starter Set".into(),
-            price: 29.99,
-            description: "Two table tennis paddles and three balls for quick rallies, family games, and friendly competition.".into(),
-            image: "/table-tennis.svg".into(),
-        },
-        Product {
-            id: 6,
-            name: "Alpine Ski and Pole Set".into(),
-            price: 299.99,
-            description: "All-mountain skis with matching poles for winter adventures and confident turns on groomed runs.".into(),
-            image: "/alpine-skis.svg".into(),
-        },
-        Product {
-            id: 7,
-            name: "Grip Yoga Mat".into(),
-            price: 24.99,
-            description: "A cushioned, non-slip mat for yoga, stretching, core workouts, and post-training recovery.".into(),
-            image: "/yoga-mat.svg".into(),
-        },
-        Product {
-            id: 8,
-            name: "Training Dumbbell Pair".into(),
-            price: 59.99,
-            description: "A pair of comfortable-grip dumbbells for strength circuits, upper-body training, and home workouts.".into(),
-            image: "/dumbbells.svg".into(),
-        },
-        Product {
-            id: 9,
-            name: "Everyday Running Shoes".into(),
-            price: 79.99,
-            description: "Lightweight running shoes with cushioned soles for easy runs, gym sessions, and active days.".into(),
-            image: "/running-shoes.svg".into(),
-        },
-        Product {
-            id: 10,
-            name: "Court and Gym Sports Bag".into(),
-            price: 34.99,
-            description: "A roomy sports bag with carry handles and a separate shoe compartment for court and gym essentials.".into(),
-            image: "/sports-bag.svg".into(),
-        },
-    ]
+    serde_json::from_str(include_str!("../catalog.json"))
+        .expect("Canonical catalog must be valid JSON")
 }
 
 #[cfg(test)]
@@ -213,12 +165,42 @@ mod tests {
             price: 9.99,
             description: "A test product".into(),
             image: "/test.jpg".into(),
+            category: "General".into(),
         }
     }
 
     #[test]
     fn validate_valid_product() {
         assert!(validate_product(&valid_product()).is_ok());
+    }
+
+    #[test]
+    fn legacy_clients_default_to_general() {
+        let mut value = serde_json::to_value(valid_product()).unwrap();
+        value.as_object_mut().unwrap().remove("category");
+        let product: Product = serde_json::from_value(value).unwrap();
+        assert_eq!(product.category, "General");
+    }
+
+    #[test]
+    fn validate_category_and_sql_limits() {
+        let mut product = valid_product();
+        product.category = "   ".into();
+        assert_eq!(
+            validate_product(&product),
+            Err(ValidationError::InvalidCategory)
+        );
+        product.category = "x".repeat(101);
+        assert_eq!(
+            validate_product(&product),
+            Err(ValidationError::FieldTooLong)
+        );
+        product = valid_product();
+        product.price = f32::NAN;
+        assert_eq!(
+            validate_product(&product),
+            Err(ValidationError::NegativePrice)
+        );
     }
 
     #[test]
@@ -339,14 +321,25 @@ mod tests {
     #[test]
     fn store_list_returns_all() {
         let store = ProductStore::new(seed_products());
-        assert_eq!(store.list().len(), 10);
+        assert_eq!(store.list().len(), 210);
     }
 
     #[test]
     fn sports_catalog_preserves_valid_unique_ids_and_images() {
         let products = seed_products();
-        let names = products.iter().map(|p| p.name.as_str()).collect::<Vec<_>>().join(" ");
-        for sport in ["Tennis", "Pickleball", "Table Tennis", "Ski", "Yoga", "Dumbbell"] {
+        let names = products
+            .iter()
+            .map(|p| p.name.as_str())
+            .collect::<Vec<_>>()
+            .join(" ");
+        for sport in [
+            "Tennis",
+            "Pickleball",
+            "Table Tennis",
+            "Ski",
+            "Yoga",
+            "Dumbbell",
+        ] {
             assert!(names.contains(sport), "Missing sports category: {sport}");
         }
         for (index, product) in products.iter().enumerate() {

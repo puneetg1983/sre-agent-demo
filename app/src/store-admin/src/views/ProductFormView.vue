@@ -44,6 +44,15 @@
       </div>
 
       <div class="form-group">
+        <label for="product-category">Category</label>
+        <input id="product-category" v-model="product.category" list="product-categories"
+          placeholder="Product category" class="form-input" />
+        <datalist id="product-categories">
+          <option v-for="category in categories" :key="category" :value="category" />
+        </datalist>
+      </div>
+
+      <div class="form-group">
         <label for="product-tags">Keywords</label>
         <input
           id="product-tags"
@@ -125,6 +134,9 @@ const aiServiceUrl = '/api/ai'
 const productServiceUrl = '/api/product'
 
 const productStore = useProductStore()
+const categories = computed(() => [...new Set(
+  productStore.products.map(product => product.category || 'General'),
+)].sort())
 const route = useRoute()
 const router = useRouter()
 
@@ -135,6 +147,7 @@ const DEFAULT_PRODUCT: Product = {
   tags: '',
   description: '',
   image: '/placeholder.png',
+  category: 'General',
 }
 
 const product = ref<Product>({ ...DEFAULT_PRODUCT })
@@ -208,6 +221,9 @@ const validationErrors = computed(() => {
   const errors: string[] = []
   if (product.value.name.length === 0) {
     errors.push('Please enter a value for the name field')
+  }
+  if (!product.value.category?.trim()) {
+    errors.push('Please enter a value for the category field')
   }
 
   if (product.value.price <= 0) {
@@ -394,7 +410,10 @@ const saveProduct = (): void => {
     },
     body: JSON.stringify(product.value),
   })
-    .then((response) => response.json())
+    .then(async (response) => {
+      if (!response.ok) throw new Error(await getApiErrorMessage(response))
+      return response.json()
+    })
     .then((data) => {
       setAiNotice('Product saved successfully.', 'success')
       // update or add the product to the list

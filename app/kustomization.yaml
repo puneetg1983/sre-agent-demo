@@ -8,6 +8,10 @@ resources:
   - ingress.yaml
   - sql.yaml
 configMapGenerator:
+  - name: catalog-seed
+    namespace: store
+    files:
+      - catalog.json=src/product-service/catalog.json
   - name: pricing-config
     namespace: store
     envs:

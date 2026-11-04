@@ -10,12 +10,12 @@ fn init() {
 }
 
 pub fn spawn_app() -> String {
-    let mut settings = Settings::default().with_port(0);
+    let mut settings = Settings::default().with_in_memory().with_port(0);
 
     let listener = &settings.tcp_listener().expect("Failed to bind address");
     let port = listener.local_addr().unwrap().port();
     let app = run(settings).expect("Failed to bind address");
-    let _ = actix_web::rt::spawn(app);
+    std::mem::drop(actix_web::rt::spawn(app));
     format!("http://127.0.0.1:{port}")
 }
 
@@ -26,6 +26,7 @@ pub fn new_product() -> Product {
         price: 9.99,
         description: "A great test product".into(),
         image: "/test.jpg".into(),
+        category: "General".into(),
     }
 }
 

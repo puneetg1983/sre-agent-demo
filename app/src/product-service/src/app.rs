@@ -4,19 +4,22 @@ use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer, middleware, web};
 
 use crate::config::Settings;
-use crate::models::{ProductStore, seed_products};
 use crate::routes::*;
-use std::sync::RwLock;
+use crate::store::CatalogStore;
 
 pub struct AppState {
-    pub store: RwLock<ProductStore>,
+    pub store: CatalogStore,
     pub settings: Settings,
     pub http_client: reqwest::Client,
     pub app_version: String,
 }
 
 pub fn run(mut settings: Settings) -> Result<Server, std::io::Error> {
-    let store = ProductStore::new(seed_products());
+    let store = if settings.in_memory {
+        CatalogStore::memory()
+    } else {
+        CatalogStore::sql()?
+    };
     let listener = settings.tcp_listener()?;
     let port = listener.local_addr().unwrap().port();
     println!("Listening on http://0.0.0.0:{port}");
@@ -24,7 +27,7 @@ pub fn run(mut settings: Settings) -> Result<Server, std::io::Error> {
     let app_version = std::env::var("APP_VERSION").unwrap_or_else(|_| "0.1.0".into());
 
     let state = web::Data::new(AppState {
-        store: RwLock::new(store),
+        store,
         http_client: reqwest::Client::builder()
             .timeout(settings.ai_request_timeout)
             .build()
@@ -47,6 +50,7 @@ pub fn run(mut settings: Settings) -> Result<Server, std::io::Error> {
             .app_data(json_cfg)
             .route("/health", web::get().to(health))
             .route("/health", web::head().to(health))
+            .route("/ready", web::get().to(ready))
             .route("/ai/health", web::get().to(ai_health))
             .route("/ai/health", web::head().to(ai_health))
             .route("/ai/tuning/dataset", web::get().to(ai_tuning_dataset))

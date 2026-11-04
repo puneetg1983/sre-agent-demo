@@ -16,7 +16,7 @@ Nonproduction Azure demo. Resource details verified on 2026-11-03.
 | Container registry | `acrqavgkg7xkz7cq.azurecr.io` |
 | Service Bus | `sbqavgkg7xkz7cq`; queue: `orders` |
 | Cosmos DB | `cosqavgkg7xkz7cq`; database/container: `orderdb/orders`; partition: `/storeId`, value `contoso` |
-| Azure SQL | `sqlqavgkg7xkz7cq.database.windows.net`; database `sportsstore`; Basic 5 DTUs / 2 GB; pickup inventory |
+| Azure SQL | `sqlqavgkg7xkz7cq.database.windows.net`; database `sportsstore`; Basic 5 DTUs / 2 GB; product catalog and pickup inventory |
 | Log Analytics | `store-logs`: container logs, pod inventory, diagnostics, Activity Logs |
 | Application Insights | `store-insights`: availability checks and pickup API/SQL dependency traces, not full order-pipeline tracing |
 | Managed Prometheus | `store-prometheus` |
@@ -25,7 +25,9 @@ Nonproduction Azure demo. Resource details verified on 2026-11-03.
 ## Application components
 
 - `store-front` and `store-admin`: customer and admin websites.
-- `product-service`: in-memory sports catalog; edits reset on restart.
+- `product-service`: SQL-persisted sports catalog with 210 initial SKUs and eight
+  categories. Product edits survive restarts; storefront category pills filter
+  the catalog. Variants share locally hosted, licensed product-family photos.
 - `checkout-api`: checks active pricing configuration and forwards orders.
 - `order-service`: publishes orders to Service Bus.
 - `makeline-service`: consumes queued orders and persists/manages them in Cosmos.
@@ -34,6 +36,7 @@ Nonproduction Azure demo. Resource details verified on 2026-11-03.
 
 Flow: **Browser -> Gateway -> private ingress -> storefront -> checkout -> order-service -> Service Bus -> makeline -> Cosmos.**
 Pickup: **Product detail -> /api/pickup/{id} -> inventory-service -> SQL dbo.GetPickupAvailability / PickupInventory.**
+Catalog: **Customer/admin -> /api/products or /api/product -> product-service -> Azure SQL.**
 
 HTTP 201 means queued, not fulfilled. Orders retain their original ID; Cosmos
 status `0` is pending, `1` is manually completed and `2` is automatically
@@ -55,6 +58,9 @@ stale rather than presented as live. The shopping cart lives in browser localSto
   makeline has Receiver and Cosmos data-contributor access. No shared keys.
 - Inventory has SQL procedure EXECUTE only. Separate `sql-operator` runs schema
   bootstrap; SQL is Entra-only.
+- Product-service has catalog-only DML on `dbo.Products`, not inventory or DDL
+  permissions. `dbo.CatalogSeedHistory` makes repeat bootstraps preserve edits
+  and deliberate product deletions.
 - `flux-system` runs GitOps; `app-routing-system` runs ingress;
   `gatekeeper-system` belongs to the Azure Policy add-on.
 

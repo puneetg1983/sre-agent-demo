@@ -10,5 +10,6 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
     <PackageReference Include="Azure.Identity" Version="1.17.1" />
     <Content Include="bootstrap.sql" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="catalog-bootstrap.sql" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -1,23 +1,23 @@
 :root {
-  --primary-color: #2a2a2a;
-  --secondary-color: #ffffff;
-  --accent-color: #007bff;
-  --accent-color-dark: #0062cc; /* Pre-calculated darker version */
-  --background-color: #f8f9fa;
-  --card-background: #ffffff;
-  --text-color: #2c3e50;
-  --border-radius: 8px;
-  --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  --button-color: #005f8b;
-  --button-hover-color: #004a6e;
+  --primary-color: var(--cp-text);
+  --secondary-color: var(--cp-accent-fg);
+  --accent-color: var(--cp-accent);
+  --accent-color-dark: var(--cp-accent-hover);
+  --background-color: var(--cp-bg);
+  --card-background: var(--cp-surface);
+  --text-color: var(--cp-text);
+  --border-radius: 0.625rem;
+  --shadow: 0 1px 3px var(--cp-border);
+  --button-color: var(--cp-accent);
+  --button-hover-color: var(--cp-accent-hover);
 }
 
 body {
-  font-family: 'Inter', 'Avenir', Helvetica, Arial, sans-serif;
+  font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--background-color);
   color: var(--text-color);
   margin: 0;
-  padding: 120px 0 0 0; /* Add top padding to push content down */
+  padding: 80px 0 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;

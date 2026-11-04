@@ -190,11 +190,10 @@ const INTERACTIONS: &[CustomerInteraction] = &[
 ];
 
 pub async fn ai_tuning_dataset(data: web::Data<AppState>) -> Result<HttpResponse, Error> {
-    let store = data
-        .store
-        .read()
-        .map_err(|_| actix_web::error::ErrorInternalServerError("Lock poisoned"))?;
-    let products = store.list();
+    let products = match data.store.list().await {
+        Ok(products) => products,
+        Err(error) => return Ok(super::products::error_response(error)),
+    };
     let mut response: Vec<MessageList> = Vec::with_capacity(products.len() * INTERACTIONS.len());
 
     for product in products.iter() {

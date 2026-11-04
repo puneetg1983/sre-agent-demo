@@ -20,6 +20,9 @@ log = "0.4.22"
 reqwest = { version = "0.12.5", features = ["json"] }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
+tiberius = { version = "0.12.3", default-features = false, features = ["tds73", "rustls"] }
+tokio = { version = "1", features = ["net", "time", "sync", "fs"] }
+tokio-util = { version = "0.7", features = ["compat"] }
 
 [dev-dependencies]
 ctor = "0.2.8"

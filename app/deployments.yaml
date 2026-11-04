@@ -53,8 +53,9 @@ spec:
         - name: product-service
           image: ${ACR_LOGIN_SERVER}/product-service:${IMAGE_TAG}
           ports: [{containerPort: 3002}]
+          envFrom: [{configMapRef: {name: sql-settings}}]
           resources: {requests: {cpu: 50m, memory: 64Mi}, limits: {cpu: 500m, memory: 256Mi}}
-          readinessProbe: {httpGet: {path: /health, port: 3002}, periodSeconds: 5}
+          readinessProbe: {httpGet: {path: /ready, port: 3002}, periodSeconds: 5, timeoutSeconds: 20}
           livenessProbe: {httpGet: {path: /health, port: 3002}, periodSeconds: 10}
 ---
 apiVersion: apps/v1

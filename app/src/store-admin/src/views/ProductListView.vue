@@ -10,6 +10,7 @@
     <div class="table-header">
       <div class="column-id">Product ID</div>
       <div class="column-name">Product Name</div>
+      <div class="column-category">Category</div>
       <div class="column-description">Description</div>
       <div class="column-price">Price</div>
     </div>
@@ -23,6 +24,7 @@
     >
       <div class="column-id">{{ product.id }}</div>
       <div class="column-name">{{ product.name }}</div>
+      <div class="column-category">{{ product.category || 'General' }}</div>
       <div class="column-description">{{ product.description }}</div>
       <div class="column-price">{{ product.price }}</div>
     </div>
@@ -67,19 +69,20 @@ const navigateToProduct = (productId: string | number) => {
 .table-header,
 .table-row {
   display: grid;
-  grid-template-columns: 0.5fr 1fr 2.5fr 0.5fr;
+  grid-template-columns: 0.5fr 1.5fr 1fr 2fr 0.5fr;
+  gap: 12px;
   align-items: center;
   padding: 0.5rem 1rem;
 }
 
 .table-header {
-  background-color: var(--primary-color);
-  color: var(--secondary-color);
+  background-color: var(--cp-surface-soft);
+  color: var(--cp-text-muted);
   font-weight: bold;
 }
 
 .table-row {
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--cp-border);
 }
 
 .table-row:last-child {
@@ -92,7 +95,7 @@ const navigateToProduct = (productId: string | number) => {
 }
 
 .table-row:hover {
-  background-color: rgba(0, 123, 255, 0.1);
+  background-color: var(--cp-accent-soft);
 }
 
 .column-id {
@@ -134,7 +137,7 @@ const navigateToProduct = (productId: string | number) => {
 
   .table-header,
   .table-row {
-    grid-template-columns: 0.2fr 1fr 2.5fr 0.5fr;
+    grid-template-columns: 0.2fr 1.5fr 1fr 2fr 0.5fr;
     font-size: 0.9rem;
   }
 }
