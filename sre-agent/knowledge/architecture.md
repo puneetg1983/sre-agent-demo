@@ -37,7 +37,8 @@ Pickup: **Product detail -> /api/pickup/{id} -> inventory-service -> SQL dbo.Get
 
 HTTP 201 means queued, not fulfilled. Orders retain their original ID; Cosmos
 status `0` is pending, `1` is manually completed and `2` is automatically
-completed. The Admin Portal retains the latest 50 orders across all statuses,
+completed. The Admin Portal uses a light-only theme and retains the latest 15
+orders across all statuses,
 ordered by their last database update, and refreshes every five seconds.
 Read failures are displayed explicitly, with previously loaded history marked
 stale rather than presented as live. The shopping cart lives in browser localStorage.

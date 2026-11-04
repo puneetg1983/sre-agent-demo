@@ -6,11 +6,12 @@
       </router-link>
       Admin Portal
     </div>
-    <ul class="nav-links" :class="{ 'nav-links--open': isNavOpen }">
+    <ul id="admin-navigation" class="nav-links" :class="{ 'nav-links--open': isNavOpen }">
       <li><router-link to="/orders" @click="closeNav">Orders</router-link></li>
       <li><router-link to="/products" @click="closeNav">Products</router-link></li>
     </ul>
-    <button class="hamburger" @click="toggleNav">
+    <button class="hamburger" aria-label="Toggle navigation" aria-controls="admin-navigation"
+      :aria-expanded="isNavOpen" @click="toggleNav">
       <span class="hamburger-icon"></span>
     </button>
   </nav>
@@ -35,35 +36,54 @@ nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #333;
-  color: #fff;
-  padding-top: 0.5rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  padding-bottom: 1px;
+  background-color: var(--cp-surface);
+  color: var(--cp-text);
+  border-bottom: 1px solid var(--cp-border);
+  padding: 8px 24px;
+  min-height: 80px;
+  box-sizing: border-box;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 1.125rem;
+  font-weight: 600;
 }
 
 nav img {
-  padding-right: 15px;
-  width: 100px;
-  height: auto;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
   align-self: center;
 }
 
 .nav-links {
   display: flex;
   list-style: none;
+  gap: 8px;
+}
+
+.nav-links li {
+  margin: 0;
+}
+
+.nav-links a {
+  display: block;
+  color: var(--cp-text-muted);
+  padding: 10px 16px;
+  border-radius: 0.625rem;
+}
+
+.nav-links a:hover,
+.nav-links .router-link-active {
+  background: var(--cp-accent-soft);
+  color: var(--cp-accent);
 }
 
 .logo {
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 
 .hamburger {
@@ -73,14 +93,16 @@ nav img {
   cursor: pointer;
   padding: 0;
   margin: 0;
-  margin-top: -40px;
+  width: 40px;
+  height: 40px;
 }
 
 .hamburger-icon {
   display: block;
   width: 20px;
   height: 2px;
-  background-color: #fff;
+  background-color: var(--cp-text);
+  margin: 0 auto;
   position: relative;
   top: 50%;
   transform: translateY(-50%);
@@ -92,7 +114,7 @@ nav img {
   display: block;
   width: 20px;
   height: 2px;
-  background-color: #fff;
+  background-color: var(--cp-text);
   position: absolute;
   left: 0;
 }
@@ -112,7 +134,8 @@ nav img {
     top: 100%;
     left: 0;
     right: 0;
-    background-color: #333;
+    background-color: var(--cp-surface);
+    border-bottom: 1px solid var(--cp-border);
     padding: 1rem;
   }
 

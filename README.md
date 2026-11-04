@@ -36,8 +36,9 @@ Place orders through the storefront, then open the Admin Portal to complete
 pending orders manually. The queue consumer still persists accepted orders
 to Cosmos DB; the independent SQL pickup monitor remains enabled.
 
-The Admin Orders page shows the latest 50 orders across all statuses, ordered
-by their last database update, and refreshes every five seconds. Completed
+The Admin Orders page uses a light-only theme and shows the latest 15 orders
+across all statuses, ordered by their last database update, and refreshes every
+five seconds. Completed
 orders remain visible. Manual completion is reflected only after the backend
 accepts it. Database failures display an error, retaining clearly marked stale
 history if any was previously loaded; they are not presented as an empty list.

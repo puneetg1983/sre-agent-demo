@@ -46,7 +46,7 @@ export const useOrderStore = defineStore('order', () => {
       })
       if (!response.ok) throw new Error(`Order history request failed: HTTP ${response.status}`)
       const data: unknown = await response.json()
-      if (!Array.isArray(data) || data.length > 50 || !data.every(isOrder)) {
+      if (!Array.isArray(data) || data.length > 15 || !data.every(isOrder)) {
         throw new Error('Invalid order history response')
       }
       addOrders(data)

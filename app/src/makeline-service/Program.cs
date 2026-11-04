@@ -38,8 +38,8 @@ app.MapGet("/order/recent", async (Container container, HttpResponse response, C
     response.Headers.CacheControl = "no-store";
     var orders = new List<Order>();
     using var iterator = container.GetItemQueryIterator<Order>(
-        new QueryDefinition("SELECT TOP @limit * FROM o ORDER BY o._ts DESC").WithParameter("@limit", 50),
-        requestOptions: new QueryRequestOptions { PartitionKey = new PartitionKey("contoso"), MaxItemCount = 50 });
+        new QueryDefinition("SELECT TOP @limit * FROM o ORDER BY o._ts DESC").WithParameter("@limit", 15),
+        requestOptions: new QueryRequestOptions { PartitionKey = new PartitionKey("contoso"), MaxItemCount = 15 });
     while (iterator.HasMoreResults)
         orders.AddRange(await iterator.ReadNextAsync(cancellation));
     return Results.Ok(orders);

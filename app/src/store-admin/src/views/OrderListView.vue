@@ -3,7 +3,7 @@
     <header class="orders-heading">
       <div>
         <h1>Recent orders</h1>
-        <p>Latest 50 orders across all statuses, most recently updated first. Refreshes every 5 seconds.</p>
+        <p>Latest 15 orders across all statuses, most recently updated first. Refreshes every 5 seconds.</p>
         <p v-if="orderStore.lastUpdated" class="updated">
           Last successful refresh: {{ new Date(orderStore.lastUpdated).toLocaleTimeString() }}
         </p>
@@ -64,14 +64,15 @@ const formatUpdated = (seconds: number | undefined) =>
 
 <style scoped>
 .recent-orders {
-  width: 95%;
+  width: calc(100% - 48px);
+  max-width: 1360px;
   margin: 2rem auto;
   color: var(--cp-text);
   font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
   text-align: left;
 }
 .orders-heading { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
-h1 { margin: 0; }
+h1 { margin: 0; font-size: 1.75rem; font-weight: 650; }
 .orders-heading p { color: var(--cp-text-muted); }
 .updated { font-size: 0.875rem; }
 button {
@@ -98,14 +99,31 @@ button:disabled { opacity: 0.65; cursor: wait; }
   border-radius: 16px;
 }
 table { width: 100%; border-collapse: collapse; }
-th, td { padding: 12px 16px; border-bottom: 1px solid var(--cp-border); white-space: nowrap; }
-th { background: var(--cp-surface-soft); color: var(--cp-text-muted); }
+th, td { padding: 10px 16px; border-bottom: 1px solid var(--cp-border); white-space: nowrap; }
+th { background: var(--cp-surface-soft); color: var(--cp-text-muted); font-size: 0.8125rem; font-weight: 600; }
+td { font-size: 0.875rem; }
 tbody tr:last-child td { border-bottom: 0; }
 tbody tr:hover { background: var(--cp-accent-soft); }
 a { color: var(--cp-link); text-decoration: underline; }
 .total { text-align: right; }
-.pending { color: var(--cp-text); background: var(--cp-accent-soft); padding: 4px 8px; border-radius: 0.625rem; }
-.completed { color: var(--cp-success); }
+.pending, .completed {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.pending { color: var(--cp-accent); background: var(--cp-accent-soft); }
+.completed { color: var(--cp-text); background: var(--cp-surface-soft); }
+.completed::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cp-success);
+}
 .empty-list { padding: 32px; text-align: center; background: var(--cp-surface); border-radius: 16px; }
 @media (max-width: 700px) {
   .orders-heading { align-items: flex-start; flex-direction: column; }

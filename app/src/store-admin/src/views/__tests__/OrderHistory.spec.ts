@@ -25,15 +25,16 @@ function renderOrders() {
 }
 
 describe('Recent order history', () => {
-  it('displays exactly 50 records across statuses in the supplied database order', async () => {
-    const records = Array.from({ length: 50 }, (_, index) => order(index, index === 0 ? 0 : 2))
+  it('displays exactly 15 records across statuses in the supplied database order', async () => {
+    const records = Array.from({ length: 15 }, (_, index) => order(index, index === 0 ? 0 : 2))
     const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(records)))
     vi.stubGlobal('fetch', fetch)
     const store = useOrderStore()
     await store.fetchOrders()
     const wrapper = renderOrders()
     expect(fetch.mock.calls[0]![0]).toBe('/api/makeline/order/recent')
-    expect(wrapper.findAll('tbody tr')).toHaveLength(50)
+    expect(wrapper.findAll('tbody tr')).toHaveLength(15)
+    expect(wrapper.text()).toContain('Latest 15 orders')
     expect(wrapper.find('tbody tr').text()).toContain('Pending')
     expect(wrapper.findAll('tbody tr')[1]!.text()).toContain('Completed')
     expect(store.orders.map(o => o.orderId)).toEqual(records.map(o => o.orderId))
@@ -96,7 +97,7 @@ describe('Recent order history', () => {
   it.each([
     '{}',
     JSON.stringify([{}]),
-    JSON.stringify(Array.from({ length: 51 }, (_, index) => order(index))),
+    JSON.stringify(Array.from({ length: 16 }, (_, index) => order(index))),
   ])('rejects malformed or oversized history responses: %s', async (body) => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body)))
