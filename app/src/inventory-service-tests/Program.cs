@@ -42,6 +42,15 @@ using (var edit = new SqlCommand("""
     UPDATE dbo.Products SET Name=N'Edited fixture', Category=N'Edited' WHERE Id=1;
     UPDATE dbo.PickupInventory SET AvailableQuantity=7, ReadyInMinutes=60 WHERE ProductId=1;
     DELETE dbo.Products WHERE Id=2;
+    DELETE dbo.CatalogPhotoHistory WHERE ProductId IN (11, 12, 13, 14);
+    UPDATE dbo.Products SET Image=(SELECT Image FROM dbo.Products WHERE Id=1),
+        Name=N'Edited added product', Price=123.25, Category=N'Edited', Description=N'Custom description'
+        WHERE Id=11;
+    UPDATE dbo.Products SET Image=N'/custom-product-photo.jpg' WHERE Id=12;
+    DELETE dbo.Products WHERE Id=13;
+    UPDATE dbo.Products SET Image=(SELECT Image FROM dbo.Products WHERE Id=1),
+        Description=N'Original description. Illustrative product-family photo; finishes and quantities may vary.'
+        WHERE Id=14;
     """, connection)) await edit.ExecuteNonQueryAsync();
 await CatalogBootstrap.RunAsync(connection, json, clientId, default);
 using var verify = new SqlCommand("""
@@ -53,13 +62,34 @@ using var verify = new SqlCommand("""
         THROW 51012, 'Bootstrap overwrote pickup stock/settings', 1;
     IF EXISTS (SELECT Id FROM dbo.Products EXCEPT SELECT ProductId FROM dbo.PickupInventory)
         THROW 51013, 'Catalog product has no pickup inventory', 1;
+    IF NOT EXISTS (SELECT 1 FROM dbo.Products WHERE Id=11 AND Image=N'/products/product-0011.jpg'
+        AND Name=N'Edited added product' AND Price=123.25 AND Category=N'Edited'
+        AND Description=N'Custom description')
+        THROW 51015, 'Photo migration did not preserve unrelated edits', 1;
+    IF NOT EXISTS (SELECT 1 FROM dbo.Products WHERE Id=12 AND Image=N'/custom-product-photo.jpg')
+        THROW 51016, 'Photo migration overwrote a custom image', 1;
+    IF EXISTS (SELECT 1 FROM dbo.Products WHERE Id=13)
+        THROW 51017, 'Photo migration resurrected a deleted product', 1;
+    IF NOT EXISTS (SELECT 1 FROM dbo.Products WHERE Id=14 AND Image=N'/products/product-0014.jpg'
+        AND Description=N'Original description. AI-generated product illustration; finishes and quantities may vary.')
+        THROW 51018, 'Photo migration did not update the image disclosure', 1;
     EXECUTE AS USER = 'product-service';
     DECLARE @Allowed int = HAS_PERMS_BY_NAME('dbo.Products', 'OBJECT', 'INSERT'),
             @Inventory int = HAS_PERMS_BY_NAME('dbo.PickupInventory', 'OBJECT', 'UPDATE'),
-            @DDL int = HAS_PERMS_BY_NAME(DB_NAME(), 'DATABASE', 'CREATE TABLE');
+            @DDL int = HAS_PERMS_BY_NAME(DB_NAME(), 'DATABASE', 'CREATE TABLE'),
+            @PhotoLedger int = HAS_PERMS_BY_NAME('dbo.CatalogPhotoHistory', 'OBJECT', 'UPDATE');
     REVERT;
-    IF @Allowed <> 1 OR @Inventory <> 0 OR @DDL <> 0
+    IF @Allowed <> 1 OR @Inventory <> 0 OR @DDL <> 0 OR @PhotoLedger <> 0
         THROW 51014, 'Catalog permissions are not narrowly scoped', 1;
     """, connection);
 await verify.ExecuteNonQueryAsync();
+using (var edit = new SqlCommand("""
+    UPDATE dbo.Products SET Image=(SELECT Image FROM dbo.Products WHERE Id=1) WHERE Id=11;
+    """, connection)) await edit.ExecuteNonQueryAsync();
+await CatalogBootstrap.RunAsync(connection, json, clientId, default);
+using (var repeated = new SqlCommand("""
+    IF NOT EXISTS (SELECT 1 FROM dbo.Products p JOIN dbo.Products original ON original.Id=1
+        WHERE p.Id=11 AND p.Image=original.Image)
+        THROW 51019, 'Repeated photo migration overwrote a later image edit', 1;
+    """, connection)) await repeated.ExecuteNonQueryAsync();
 Console.WriteLine("PASS: live isolated SQL bootstrap idempotence, edit/delete preservation, pickup coverage and narrow grants.");

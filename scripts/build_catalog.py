@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "app" / "src" / "product-service" / "catalog.json"
 
-# Each SKU uses its family's licensed photograph; preserve the original ten IDs.
+# Preserve the original ten IDs; each added SKU has its own generated image.
 FAMILIES = [
     ("Fitness & Strength", ["Mini Loop", "Power Loop", "Fabric Hip", "Tube Handle", "Assisted Pull-Up"],
      ["Light", "Medium", "Heavy", "Extra Heavy"]),
@@ -52,9 +52,9 @@ def build_catalog(baseline):
                     "price": float(price.quantize(Decimal("0.01"))),
                     "description": (
                         f'{product["description"]} {model} edition, {option.lower()}. '
-                        "Illustrative product-family photo; finishes and quantities may vary."
+                        "AI-generated product illustration; finishes and quantities may vary."
                     ),
-                    "image": product["image"],
+                    "image": f"/products/product-{len(products) + 1:04}.jpg",
                     "category": category,
                 })
     return products

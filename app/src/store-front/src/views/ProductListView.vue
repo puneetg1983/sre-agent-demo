@@ -26,7 +26,7 @@
       @click="visibleCount += PAGE_SIZE">
       Show more products
     </button>
-    <p class="photo-note">Product-family photos are illustrative; finishes and quantities may vary.</p>
+    <p class="photo-note">New-product images are AI-generated illustrations; finishes and quantities may vary.</p>
   </main>
 </template>
 

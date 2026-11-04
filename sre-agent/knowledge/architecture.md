@@ -27,7 +27,8 @@ Nonproduction Azure demo. Resource details verified on 2026-11-03.
 - `store-front` and `store-admin`: customer and admin websites.
 - `product-service`: SQL-persisted sports catalog with 210 initial SKUs and eight
   categories. Product edits survive restarts; storefront category pills filter
-  the catalog. Variants share locally hosted, licensed product-family photos.
+  the catalog. Each added SKU has a distinct, locally hosted AI-generated image;
+  the original ten retain their licensed photographs.
 - `checkout-api`: checks active pricing configuration and forwards orders.
 - `order-service`: publishes orders to Service Bus.
 - `makeline-service`: consumes queued orders and persists/manages them in Cosmos.

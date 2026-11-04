@@ -55,11 +55,17 @@ The catalog is persisted in the existing Azure SQL database rather than pod
 memory; updates survive product-service restarts. Seeding preserves existing
 records and adds pickup inventory for new catalog IDs.
 
-Products use locally hosted, licensed product-family photographs. Variants
-share the appropriate family image; photos are illustrative, not unique
-photographs of each SKU. The canonical seed is
+Each of the 200 added products has its own distinct, locally hosted AI-generated
+product image. The original ten products retain their licensed photographs.
+Images are illustrative; finishes, colors, and quantities may vary. Image
+provenance and hashes are in `app/src/product-service/photo-manifest.json`;
+both websites include the original photo licenses and generated-image disclosure.
+The canonical seed is
 `app/src/product-service/catalog.json`; regenerate its deterministic variants
 with `python scripts\build_catalog.py`.
+The optional asset-extraction utility `scripts\prepare_product_photos.py` requires
+Pillow and the original generated sheets supplied with `--source-dir`; the
+committed per-product JPEGs do not require regeneration.
 
 ## Deployment
 

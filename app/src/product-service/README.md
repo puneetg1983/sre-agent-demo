@@ -34,14 +34,21 @@ Bootstrap creates or maintains:
 
 - `dbo.Products`: catalog fields including `Category`; explicit seed IDs 1–210 advance its identity so the first generated ID is 211 on a fresh catalog.
 - `dbo.CatalogSeedHistory`: seed-ID ledger so later bootstrap runs do not resurrect intentionally deleted catalog products.
+- `dbo.CatalogPhotoHistory`: one-time migration ledger for replacing the original shared images on IDs 11-210 with their individual generated images.
 - `dbo.PickupInventory`: pickup availability, with missing seed-product rows added without resetting existing stock or store settings.
 - `dbo.GetPickupAvailability @ProductId int`: existing pickup-read procedure.
 
-Existing product edits and unrelated rows are preserved. Catalog seeding, the seed ledger, new pickup rows, and product grants are committed together under the transaction-owned `Contoso.CatalogBootstrap` application lock.
+Existing product edits and unrelated rows are preserved. The photo migration replaces only a seeded product's original shared image and its unchanged photo-disclosure suffix; custom images and other fields are preserved. The photo ledger prevents subsequent bootstrap runs from overriding later image edits. Catalog seeding, migration ledgers, new pickup rows, and product grants are committed together under the transaction-owned `Contoso.CatalogBootstrap` application lock.
 
-`[product-service]` receives `SELECT, INSERT, UPDATE, DELETE` only on `dbo.Products`. It is explicitly denied those operations on `dbo.PickupInventory` and `dbo.CatalogSeedHistory`, and denied `CREATE TABLE` and `ALTER ANY SCHEMA`. `[inventory-service]` receives `EXECUTE` on `dbo.GetPickupAvailability`, not table mutation rights. Bootstrap rejects identity/client-ID mismatches. It does not change `sql-mcp-reader` or grant database-owner roles.
+`[product-service]` receives `SELECT, INSERT, UPDATE, DELETE` only on `dbo.Products`. It is explicitly denied those operations on `dbo.PickupInventory`, `dbo.CatalogSeedHistory`, and `dbo.CatalogPhotoHistory`, and denied `CREATE TABLE` and `ALTER ANY SCHEMA`. `[inventory-service]` receives `EXECUTE` on `dbo.GetPickupAvailability`, not table mutation rights. Bootstrap rejects identity/client-ID mismatches. It does not change `sql-mcp-reader` or grant database-owner roles.
 
 ### Safe bootstrap-before-release order
+
+For an existing catalog's photo migration, first release the new frontend/admin
+assets while retaining the previous inventory-service image. Confirm the new
+image URLs are reachable before releasing the updated bootstrap image or running
+its Job. This prevents SQL from referencing assets that are not yet published.
+The normal schema-first procedure below applies to fresh catalog provisioning.
 
 1. Build the new inventory-service and product-service images (and matching frontend/admin images) under the same new source-tree tag. Do not update Flux's common `IMAGE_TAG` yet.
 2. Render `app` with Kustomize. For a bootstrap-only payload, select the generated catalog ConfigMap, `sql-settings`, and `sql-bootstrap` Job—**not** the application Deployments. Resolve `SQL_SERVER`, `SQL_DATABASE`, `INVENTORY_SERVICE_CLIENT_ID`, `PRODUCT_SERVICE_CLIENT_ID`, `ACR_LOGIN_SERVER`, and `IMAGE_TAG` using the intended release values.

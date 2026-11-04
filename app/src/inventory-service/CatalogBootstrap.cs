@@ -44,6 +44,7 @@ static class CatalogBootstrap
             GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Products TO [product-service];
             DENY SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.PickupInventory TO [product-service];
             DENY SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.CatalogSeedHistory TO [product-service];
+            DENY SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.CatalogPhotoHistory TO [product-service];
             DENY CREATE TABLE, ALTER ANY SCHEMA TO [product-service];
             """, connection, transaction) { CommandTimeout = 30 };
         await grant.ExecuteNonQueryAsync(token);
