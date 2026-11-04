@@ -327,6 +327,15 @@ mod tests {
     #[test]
     fn sports_catalog_preserves_valid_unique_ids_and_images() {
         let products = seed_products();
+        assert_eq!(products.len(), 210);
+        assert_eq!(
+            products
+                .iter()
+                .map(|p| &p.image)
+                .collect::<std::collections::HashSet<_>>()
+                .len(),
+            210
+        );
         let names = products
             .iter()
             .map(|p| p.name.as_str())
@@ -345,7 +354,14 @@ mod tests {
         for (index, product) in products.iter().enumerate() {
             assert_eq!(product.id, (index + 1) as i32);
             assert!(validate_product(product).is_ok());
-            assert!(product.image.ends_with(".svg"));
+            if index < 10 {
+                assert!(product.image.ends_with(".svg"));
+            } else {
+                assert_eq!(
+                    product.image,
+                    format!("/products/product-{:04}.jpg", product.id)
+                );
+            }
         }
         assert_eq!(products[0].price, 10.0);
     }
