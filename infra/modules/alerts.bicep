@@ -3,6 +3,7 @@ param tags object
 param appgwId string
 param insightsName string
 param appUrl string
+param workspaceId string
 param reuseExistingActionGroup bool = false
 
 resource ag 'Microsoft.Insights/actionGroups@2023-01-01' existing = {
@@ -14,6 +15,15 @@ resource newAg 'Microsoft.Insights/actionGroups@2023-01-01' = if (!reuseExisting
   location: 'global'
   tags: tags
   properties: { groupShortName: 'StoreDemo', enabled: true }
+}
+module orderServiceAuthorization 'order-service-alert.bicep' = {
+  name: 'order-service-authorization-alert'
+  dependsOn: [newAg]
+  params: {
+    location: location
+    tags: tags
+    workspaceId: workspaceId
+  }
 }
 var definitions = [
   { name: 'appgw-5xx', resourceId: appgwId, ns: 'Microsoft.Network/applicationGateways', metric: 'ResponseStatus', aggregation: 'Total', threshold: 2, dimension: [{ name: 'HttpStatusGroup', operator: 'Include', values: ['5xx'] }] }

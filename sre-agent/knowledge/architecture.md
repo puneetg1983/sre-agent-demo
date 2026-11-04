@@ -64,8 +64,9 @@ Repository: https://github.com/puneetg1983/sre-agent-demo
 Flux syncs `main`, folder `app`, approximately every minute.
 Images are built through Azure ACR Tasks; source pushes alone do not release images.
 
-Alerts: `availability-failures` (external availability) and `appgw-5xx`
-(customer-facing HTTP failures). These are service-health signals, not a
+Alerts: `availability-failures` (external availability), `appgw-5xx`
+(customer-facing HTTP failures), and `order-service-send-authorization-failure`
+(Service Bus denied Send authorization in order-service logs). These are service-health signals, not a
 contractual SLA or percentage error-budget calculation.
 SQL logs include connection/query duration and session/trace IDs; native Azure SQL
 diagnostics and Query Store feed the workspace. Ready pods and passing frontend health checks do not

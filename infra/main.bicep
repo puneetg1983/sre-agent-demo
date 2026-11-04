@@ -129,6 +129,7 @@ module alerts 'modules/alerts.bicep' = {
     appgwId: appgw.outputs.id
     insightsName: monitoring.outputs.insightsName
     appUrl: appgw.outputs.url
+    workspaceId: monitoring.outputs.workspaceId
     reuseExistingActionGroup: reuseExistingActionGroup
   }
 }

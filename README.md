@@ -68,17 +68,19 @@ Do not invoke raw ARM with fresh-install defaults against configured resources.
 
 ## Monitoring
 
-Two customer-facing alert rules use the existing `store-incidents` action group:
+Three alert rules use the existing `store-incidents` action group:
 
 | Alert | Signal |
 | --- | --- |
 | `availability-failures` | Public health endpoint fails from at least two external probe locations |
 | `appgw-5xx` | More than two gateway HTTP 5xx responses in one minute |
+| `order-service-send-authorization-failure` | At least one `order-service` log reporting Service Bus denied Send authorization in five minutes; evaluated every minute, severity 2 |
 
 These are service-health signals, not contractual SLA or percentage error-budget
 calculations. Infrastructure metrics, queue telemetry, native Azure SQL metrics/diagnostics,
-and request/dependency traces remain available for investigation without
-separate component-level paging rules.
+and request/dependency traces remain available for investigation. The dedicated
+order-service alert detects authorization failures rather than unrelated
+pricing, Cosmos connectivity, or general queue errors.
 
 ## Source and licenses
 
